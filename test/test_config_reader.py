@@ -16,7 +16,6 @@ class ConfigReaderTest(unittest.TestCase):
         self._path = os.getcwd()
         self.addCleanup(lambda: os.chdir(self._path))
 
-
     @tempdir()
     def test_shouldReadPath(self, directory):
         directory.write("oneliner.config", b"path = ./lines\n")

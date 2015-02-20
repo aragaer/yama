@@ -7,6 +7,7 @@ from os import path
 class Writer(object):
 
     _path = None
+
     def __init__(self, storage_path):
         self._path = storage_path
 
