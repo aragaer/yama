@@ -2,6 +2,12 @@
 
 from datetime import date
 from os import path
+import sys
+
+from yama.config_reader import ConfigReader
+
+
+__all__ = ['Writer', 'main']
 
 
 class Writer(object):
@@ -16,3 +22,9 @@ class Writer(object):
         filepath = path.join(self._path, filename)
         with open(filepath, "a+") as out:
             out.write(line+"\n")
+
+
+def main():
+    config = ConfigReader()
+    config.read()
+    Writer(config.path).write(" ".join(sys.argv[1:]))

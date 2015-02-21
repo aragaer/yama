@@ -13,7 +13,7 @@ and running features, etc.
 """
 
 from __future__ import absolute_import, print_function, with_statement
-from behave4cmd0.__setup import TOP
+from behave4cmd0.__setup import HERE, TOP
 import os.path
 import six
 import subprocess
@@ -72,7 +72,8 @@ class Command(object):
     """
     DEBUG = False
     COMMAND_MAP = {
-        "behave": os.path.normpath("{0}/bin/behave".format(TOP))
+        "behave": os.path.normpath("{0}/bin/behave".format(TOP)),
+        "oneliner": os.path.normpath("{0}/oneliner".format(TOP))
     }
 
     @classmethod
@@ -123,6 +124,8 @@ class Command(object):
             command_result.stderr = u"OSError: %s" % e
             command_result.returncode = e.errno
             assert e.errno != 0
+        print(command_result.stdout)
+        print(command_result.stderr)
         return command_result
 
 

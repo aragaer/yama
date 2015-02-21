@@ -10,10 +10,8 @@ Feature: Command-line scratchpad writer
     path = ./some_dir
     """
     And a directory named "some_dir"
-    And current date is "2015-02-15"
-    When I run "./oneliner test line"
-    Then a file named "some_dir/2015-02-15.txt" should exist
-    And the file "some_dir/2015-02-15.txt" should contain:
+    When I run "oneliner test line"
+    Then a file for today date should exist in "some_dir" with:
     """
     test line
     """

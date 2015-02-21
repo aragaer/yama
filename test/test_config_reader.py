@@ -25,3 +25,14 @@ class ConfigReaderTest(unittest.TestCase):
         reader.read()
 
         self.assertEqual(reader.path, os.path.join(directory.path, "lines"))
+
+    @tempdir()
+    def test_shouldReadAbsolutePath(self, directory):
+        directory.write("oneliner.config",
+                        bytes("path = "+os.path.join(directory.path, "lines")+"\n", 'utf-8'))
+        os.chdir(directory.path)
+        reader = ConfigReader()
+
+        reader.read()
+
+        self.assertEqual(reader.path, os.path.join(directory.path, "lines"))
