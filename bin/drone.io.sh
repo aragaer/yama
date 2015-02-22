@@ -1,5 +1,5 @@
 #!/bin/bash -ex
 
-pip install -r requirements-dev.txt
+pip install -q -r requirements-dev.txt --use-mirrors
 nosetests
 behave -c
