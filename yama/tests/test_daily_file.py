@@ -6,7 +6,7 @@ import unittest
 from freezegun import freeze_time
 from testfixtures import tempdir, compare
 
-from oneliner import Writer, main
+from yama.oneliner import Writer, main
 
 
 class DailyFileTest(unittest.TestCase):

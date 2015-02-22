@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from scratchpad import Scratchpad
+from yama.scratchpad import Scratchpad
 
 
 class ScratchPadTest(unittest.TestCase):

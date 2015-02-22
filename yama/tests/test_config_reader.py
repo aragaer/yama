@@ -5,7 +5,7 @@ import unittest
 
 from testfixtures import tempdir
 
-from config_reader import ConfigReader
+from yama.config_reader import ConfigReader
 
 
 class ConfigReaderTest(unittest.TestCase):
