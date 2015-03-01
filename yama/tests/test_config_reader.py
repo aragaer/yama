@@ -28,8 +28,9 @@ class ConfigReaderTest(unittest.TestCase):
 
     @tempdir()
     def test_shouldReadAbsolutePath(self, directory):
+        out_path = os.path.join(directory.path, "lines")
         directory.write("oneliner.config",
-                        bytes("path = "+os.path.join(directory.path, "lines")+"\n", 'utf-8'))
+                        bytes("path = "+out_path+"\n", 'utf-8'))
         os.chdir(directory.path)
         reader = ConfigReader()
 

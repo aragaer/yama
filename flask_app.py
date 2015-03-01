@@ -8,9 +8,9 @@ import requests
 
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY','iwonttellyou')
+app.secret_key = os.environ.get('SECRET_KEY', 'iwonttellyou')
 
-redirect_uri = 'https://'+os.environ.get('URL','localhost:5000')+'/callback'
+redirect_uri = 'https://'+os.environ.get('URL', 'localhost:5000')+'/callback'
 client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
 client_secret = os.environ.get('GOOGLE_SECRET')
 
@@ -66,6 +66,12 @@ def callback():
         return redirect(url_for('index'))
     else:
         return 'ERROR'
+
+
+@app.route('/hello')
+def hello():
+    return 'Hello, world'
+
 
 if __name__ == '__main__':
     app.run(debug=True)

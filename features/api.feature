@@ -17,3 +17,6 @@ Feature: Simple api
     Another test line
     """
 
+   Scenario: Hello world
+     When I go to "/hello"
+     Then I get the response "Hello, world"

@@ -12,3 +12,14 @@ def verify_today_file(context, directory):
     """
     {text}
     """'''.format(path=filepath, text=context.text))
+
+
+@when('I go to "{path}"')
+def go_hello(context, path):
+    context.page = context.client.get(path)
+
+
+@then('I get the response "{response}"')
+def get_hello(context, response):
+    assert context.page.data == bytes(response, 'utf-8'), \
+        "Expected %s, got %s" % (response, str(context.page.data))
