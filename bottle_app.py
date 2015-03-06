@@ -2,11 +2,13 @@
 
 import os
 
-from bottle import route, run
+from bottle import Bottle, run
 
-@route('/')
+app = Bottle()
+
+@app.route('/hello')
 def hello_world():
     return 'Hello, world'
 
 if __name__ == '__main__':
-    run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

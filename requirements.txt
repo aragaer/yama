@@ -1,6 +1,1 @@
-Flask==0.10.1
-Jinja2==2.7.3
-Werkzeug==0.10.1
-gunicorn==19.2.1
-requests==2.5.1
 bottle==0.12.8
