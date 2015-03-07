@@ -11,11 +11,11 @@ path_current = path_features.strip(path_project)
 
 sys.path.append(path_current)
 
-from app import APP
+from app import APP, STORAGE
 
 
 def before_feature(context, feature):
     context.app = TestApp(APP)
-    context.storage = APP.storage
+    context.storage = STORAGE
 
     context.debug = True

@@ -2,7 +2,7 @@ class Container(object):
 
     _messages = None
 
-    def __init__(self):
+    def __init__(self, name=None):
         self._messages = []
 
     def post(self, str_message):
@@ -10,4 +10,4 @@ class Container(object):
 
     @property
     def messages(self):
-       return self._messages
+        return self._messages

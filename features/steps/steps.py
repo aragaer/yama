@@ -1,4 +1,5 @@
 from datetime import date
+import json
 from os import path
 
 
@@ -25,9 +26,15 @@ def insert_memos_for_date(context, date):
 
 @when('I access the resource \'{path}\'')
 def access_resource(context, path):
-    raise NotImplementedError('STEP: When I access the resource \'{path}\'')
+    context.response = context.app.get(path)
 
 
 @then('I get the following list of memos')
 def check_memos_result(context):
-    raise NotImplementedError('STEP: Then I get the following list of memos')
+    if context.debug:
+        print(context.response.json)
+    result = context.response.json
+    expected = context.text.splitlines()
+
+    assert result == expected, \
+        "Expected:\n%s\ngot:\n%s" % (expected, result)
