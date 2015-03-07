@@ -16,6 +16,8 @@ def verify_today_file(context, directory):
 
 @given('I have the following memos for date {date}')
 def insert_memos_for_date(context, date):
+    container = context.storage.get_container(date)
+
     raise NotImplementedError('STEP: Given I have the following memos for date {date}')
 
 

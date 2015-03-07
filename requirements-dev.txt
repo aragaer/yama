@@ -7,6 +7,7 @@ nose==1.3.4
 # Test helpers
 freezegun==0.3.1
 testfixtures==4.1.2
+WebTest==2.0.18
 
 # For behave4cmd0
 PyHamcrest==1.8.1
