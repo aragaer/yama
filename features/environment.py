@@ -17,3 +17,5 @@ from app import APP
 def before_feature(context, feature):
     context.app = TestApp(APP)
     context.storage = APP.storage
+
+    context.debug = True

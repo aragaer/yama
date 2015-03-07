@@ -2,6 +2,7 @@
 
 import unittest
 
+from yama.container import Container
 from yama.storage import Storage
 
 
@@ -11,3 +12,5 @@ class StorageTest(unittest.TestCase):
         storage = Storage()
 
         container = storage.get_container('container name')
+
+        self.assertIsInstance(container, Container)
