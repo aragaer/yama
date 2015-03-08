@@ -24,7 +24,6 @@ class AppTest(unittest.TestCase):
         app.daily_memos('2015-01-01')
         self.assertEquals(response.content_type, 'application/json')
 
-
     def test_dailyMemosShouldReturnMessagesFromContainer(self):
         container = app.STORAGE.get_container('2015-01-01')
         messages = ['test message', 'another test message']
