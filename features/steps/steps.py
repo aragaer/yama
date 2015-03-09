@@ -1,6 +1,7 @@
 from datetime import date
 import json
 from os import path
+from time import sleep
 
 
 @then('a file for today date should exist in "{directory}" with')
@@ -38,3 +39,7 @@ def check_memos_result(context):
 
     assert result == expected, \
         "Expected:\n%s\ngot:\n%s" % (expected, result)
+
+@when('I wait for 1 second')
+def wait(context):
+    sleep(1)

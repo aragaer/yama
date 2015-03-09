@@ -15,3 +15,12 @@ STORAGE = Storage()
 def daily_memos(date):
     response.content_type = 'application/json'
     return json.dumps(STORAGE.get_container(date).messages)
+
+
+@APP.route('/')
+def hello():
+    return 'Hello, world'
+
+
+if __name__ == '__main__':
+    APP.run(host='0.0.0.0', port=5000)
