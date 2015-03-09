@@ -19,3 +19,12 @@ def before_feature(context, feature):
     context.storage = STORAGE
 
     context.debug = True
+
+
+def after_scenario(context, scenario):
+    if 'background_processes' in context:
+        for process in context.background_processes:
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                pass

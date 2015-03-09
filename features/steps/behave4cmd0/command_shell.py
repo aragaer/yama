@@ -73,8 +73,15 @@ class Command(object):
     DEBUG = False
     COMMAND_MAP = {
         "behave": os.path.normpath("{0}/bin/behave".format(TOP)),
-        "oneliner": os.path.normpath("{0}/oneliner".format(TOP))
+        "oneliner": os.path.normpath("{0}/oneliner".format(TOP)),
+        "curl": "curl -#",
     }
+
+    @classmethod
+    def _transform_command(cls, cmdargs):
+        real_command = cls.COMMAND_MAP.get(cmdargs[0], None)
+        if real_command:
+            cmdargs[:1] = shlex.split(real_command)
 
     @classmethod
     def run(cls, command, cwd=".", **kwargs):
@@ -86,31 +93,17 @@ class Command(object):
         command_result = CommandResult()
         command_result.command = command
 
-        # -- BUILD COMMAND ARGS:
-        if six.PY2 and isinstance(command, six.text_type):
-            # -- PREPARE-FOR: shlex.split()
-            # In PY2, shlex.split() requires bytes string (non-unicode).
-            # In PY3, shlex.split() accepts unicode string.
-            command = codecs.encode(command, "utf-8")
         cmdargs = shlex.split(command)
-
-        # -- TRANSFORM COMMAND (optional)
-        real_command = cls.COMMAND_MAP.get(cmdargs[0], None)
-        if real_command:
-            cmdargs[0] = real_command
+        Command._transform_command(cmdargs)
 
         # -- RUN COMMAND:
         try:
             process = subprocess.Popen(cmdargs,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            universal_newlines=True,
-                            cwd=cwd, **kwargs)
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE,
+                                       universal_newlines=True,
+                                       cwd=cwd, **kwargs)
             out, err = process.communicate()
-            if six.PY2: # py3: we get unicode strings, py2 not
-                default_encoding = 'UTF-8'
-                out = six.text_type(out, process.stdout.encoding or default_encoding)
-                err = six.text_type(err, process.stderr.encoding or default_encoding)
             process.poll()
             assert process.returncode is not None
             command_result.stdout = out
@@ -119,15 +112,39 @@ class Command(object):
             if cls.DEBUG:
                 print("shell.cwd={0}".format(kwargs.get("cwd", None)))
                 print("shell.command: {0}".format(" ".join(cmdargs)))
-                print("shell.command.output:\n{0};".format(command_result.output))
+                print("shell.command.output:\n{0};"
+                      .format(command_result.output))
         except OSError as e:
             command_result.stderr = u"OSError: %s" % e
             command_result.returncode = e.errno
             assert e.errno != 0
-        print(command_result.stdout)
-        print(command_result.stderr)
         return command_result
 
+    @classmethod
+    def start(cls, command, cwd=".", **kwargs):
+        """
+        Run a subprocess in background.
+        Returns Popen object.
+        """
+        assert isinstance(command, six.string_types)
+
+        cmdargs = shlex.split(command)
+        Command._transform_command(cmdargs)
+
+        # -- RUN COMMAND:
+        try:
+            process = subprocess.Popen(cmdargs,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE,
+                                       universal_newlines=True,
+                                       cwd=cwd, **kwargs)
+        except OSError as e:
+            print("OSError: %s" % e)
+            out, err = process.communicate()
+            print("OUT:\n", out)
+            print("ERR:\n", err)
+            assert e.errno != 0
+        return process
 
 
 # -----------------------------------------------------------------------------
@@ -135,6 +152,11 @@ class Command(object):
 # -----------------------------------------------------------------------------
 def run(command, cwd=".", **kwargs):
     return Command.run(command, cwd=cwd, **kwargs)
+
+
+def start(command, cwd=".", **kwargs):
+    return Command.start(command, cwd=cwd, **kwargs)
+
 
 def behave(cmdline, cwd=".", **kwargs):
     """
