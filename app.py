@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 
 from bottle import Bottle, response
 
@@ -23,4 +24,5 @@ def hello():
 
 
 if __name__ == '__main__':
-    APP.run(host='0.0.0.0', port=5000)
+    print(os.environ.get('PORT', 5000))
+    APP.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
