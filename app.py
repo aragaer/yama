@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
+from datetime import date
 import json
 import os
 
-from bottle import Bottle, response
+from bottle import Bottle, request, response
 
 from yama.storage import Storage
 
@@ -13,7 +14,9 @@ STORAGE = Storage()
 
 @APP.post('/memos/daily')
 def daily():
-    pass
+    message = request.body.read().decode('utf-8')
+    str_date = date.today().isoformat()
+    STORAGE.get_container(str_date).post(message)
 
 
 @APP.get('/memos/daily/<date>')

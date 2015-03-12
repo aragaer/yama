@@ -16,7 +16,6 @@ Feature: Simple api
     Another test line
     """
 
-  @wip
   Scenario: Writing a line
     Given the date is '2015-03-10'
     When I post to '/memos/daily' the following text:
