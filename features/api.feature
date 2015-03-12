@@ -19,8 +19,10 @@ Feature: Simple api
   @wip
   Scenario: Writing a line
     Given the date is '2015-03-10'
-    When I request '/memos/daily' with POST
-    And send "Just a test line here"
+    When I post to '/memos/daily' the following text:
+    """
+    Just a test line here
+    """
     Then I have the following memos for date 2015-03-10:
     """
     Just a test line here

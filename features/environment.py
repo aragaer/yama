@@ -28,3 +28,5 @@ def after_scenario(context, scenario):
                 process.terminate()
             except ProcessLookupError:
                 pass
+    if 'freezer' in context:
+        context.freezer.stop()

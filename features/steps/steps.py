@@ -3,6 +3,8 @@ import json
 from os import path
 from time import sleep
 
+from freezegun import freeze_time
+
 
 @then('a file for today date should exist in "{directory}" with')
 def verify_today_file(context, directory):
@@ -40,6 +42,27 @@ def check_memos_result(context):
     assert result == expected, \
         "Expected:\n%s\ngot:\n%s" % (expected, result)
 
+
 @when('I wait for 1 second')
 def wait(context):
     sleep(1)
+
+
+@given('the date is \'{date}\'')
+def freeze_date(context, date):
+    context.freezer = freeze_time(date)
+    context.freezer.start()
+
+
+@when('I post to \'{resource}\' the following text')
+def post_data_to_resource(context, resource):
+    context.response = context.app.post(resource, context.text)
+
+
+@then('I have the following memos for date {date}')
+def check_memos(context, date):
+    container = context.storage.get_container(date)
+    existing = list(container.messages)
+    expected = context.text.splitlines()
+    assert existing == expected, \
+        "Expected %s, got %s" % (expected, existing)

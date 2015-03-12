@@ -11,8 +11,12 @@ from yama.storage import Storage
 APP = Bottle()
 STORAGE = Storage()
 
+@APP.post('/memos/daily')
+def daily():
+    pass
 
-@APP.route('/memos/daily/<date>')
+
+@APP.get('/memos/daily/<date>')
 def daily_memos(date):
     response.content_type = 'application/json'
     return json.dumps(STORAGE.get_container(date).messages)
