@@ -22,6 +22,16 @@ class ContainerTest(unittest.TestCase):
 
         self.assertEquals(container.label, 'a name')
 
+    def test_child_containers(self):
+        container = Container('root')
+
+        child = container.create_child('subcontainer')
+
+        self.assertIsInstance(child, Container)
+        self.assertEqual('subcontainer', child.label)
+
+        self.assertEqual([child], container.children)
+
 
 class MongoStorageTest(unittest.TestCase):
 
@@ -30,3 +40,12 @@ class MongoStorageTest(unittest.TestCase):
     def setUp(self):
         self._connection = MongoClient().db
         self._storage = Storage(self._connection)
+
+    def test_loading(self):
+        child = Container('child')
+        container = Container(storage=self._storage,
+                              contents=['a message', 'other message'],
+                              children=[child])
+        self.assertEqual(['a message', 'other message'],
+                         container.messages)
+        self.assertEqual(['child'], [c.label for c in container.children])

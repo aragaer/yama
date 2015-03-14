@@ -3,6 +3,9 @@ Feature: Simple api
   I want to have a web API for my memos
   So that I could choose between multiple available clients to write and read my memos
 
+  Background: Clean database
+    Given I have empty database
+
   Scenario: Reading the lines
     Given I have the following memos for date 2015-02-27:
     """

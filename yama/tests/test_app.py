@@ -22,12 +22,25 @@ import app
 
 class AppTest(unittest.TestCase):
 
+    def _get_timeline_container(self):
+        for container in app.STORAGE.get_root_containers():
+            if container.label == 'timeline':
+                return container
+        return app.STORAGE.create_container('timeline')
+
+    def _get_date_container(self, date):
+        timeline = self._get_timeline_container()
+        for container in timeline.children:
+            if container.label == date:
+                return container
+        return timeline.create_child(date)
+
     def test_daily_memos_should_return_json(self):
         app.daily_memos('2015-01-01')
         self.assertEquals(response.content_type, 'application/json')
 
     def test_daily_memos_should_return_messages_from_container(self):
-        container = app.STORAGE.get_container('2015-01-01')
+        container = self._get_date_container('2015-01-01')
         messages = ['test message', 'another test message']
         for message in messages:
             container.post(message)
@@ -37,7 +50,7 @@ class AppTest(unittest.TestCase):
         self.assertEquals(json.loads(result), messages)
 
     def test_daily_memos_should_post_to_container(self):
-        container = app.STORAGE.get_container('2015-03-12')
+        container = self._get_date_container('2015-03-12')
 
         body = tob("Just another test line")
         post_data = BytesIO()

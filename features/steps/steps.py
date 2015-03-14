@@ -6,6 +6,27 @@ from time import sleep
 from freezegun import freeze_time
 
 
+def _get_date_container(context, date):
+    for container in context.storage.get_root_containers():
+        if container.label == 'timeline':
+            timeline = container
+            break
+    else:
+        timeline = context.storage.create_container('timeline')
+    for container in timeline.children:
+        if container.label == date:
+            return container
+    return timeline.create_child(date)
+
+
+@given('I have empty database')
+def reset_storage(context):
+    from mongomock import MongoClient
+    import app
+    from yama.storage import Storage
+    app.STORAGE = context.storage = Storage(MongoClient().db)
+
+
 @then('a file for today date should exist in "{directory}" with')
 def verify_today_file(context, directory):
     filename = date.today().isoformat()+".txt"
@@ -20,7 +41,7 @@ def verify_today_file(context, directory):
 
 @given('I have the following memos for date {date}')
 def insert_memos_for_date(context, date):
-    container = context.storage.get_container(date)
+    container = _get_date_container(context, date)
     for line in context.text.splitlines():
         container.post(line)
         if context.debug:
@@ -61,7 +82,7 @@ def post_data_to_resource(context, resource):
 
 @then('I have the following memos for date {date}')
 def check_memos(context, date):
-    container = context.storage.get_container(date)
+    container = _get_date_container(context, date)
     existing = list(container.messages)
     expected = context.text.splitlines()
     assert existing == expected, \

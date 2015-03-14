@@ -1,12 +1,14 @@
 class Container(object):
 
+    _children = None
     _id = None
     _label = None
     _messages = None
     _storage = None
 
     def __init__(self, label=None, storage=None, _id=None,
-                 contents=None):
+                 contents=None, children=None):
+        self._children = children or []
         self._id = _id
         self._label = label
         self._messages = contents or []
@@ -17,6 +19,10 @@ class Container(object):
             self._storage.post_message(str_message, self._id)
         self._messages.append(str_message)
 
+    def create_child(self, child_name):
+        self._children.append(Container(child_name))
+        return self._children[-1]
+
     @property
     def messages(self):
         return self._messages
@@ -24,3 +30,7 @@ class Container(object):
     @property
     def label(self):
         return self._label
+
+    @property
+    def children(self):
+        return self._children
