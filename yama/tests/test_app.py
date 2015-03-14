@@ -63,3 +63,14 @@ class AppTest(unittest.TestCase):
             app.daily()
 
         self.assertEquals(['Just another test line'], container.messages)
+
+    def test_today(self):
+        container = self._get_date_container('2015-03-14')
+        messages = ['test message', 'another test message']
+        for message in messages:
+            container.post(message)
+
+        with freeze_time('2015-03-14'):
+            result = app.daily_memos('today')
+
+        self.assertEquals(json.loads(result), messages)

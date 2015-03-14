@@ -29,3 +29,17 @@ Feature: Simple api
     """
     Just a test line here
     """
+
+  Scenario: Today lines
+    Given the date is '2015-03-14'
+    And I have the following memos for date 2015-03-14:
+    """
+    Test line
+    Another test line
+    """
+    When I access the resource '/memos/daily/today'
+    Then I get the following list of memos:
+    """
+    Test line
+    Another test line
+    """

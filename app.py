@@ -36,10 +36,12 @@ def daily():
     _get_date_container(str_date).post(message)
 
 
-@APP.get('/memos/daily/<date>')
-def daily_memos(date):
+@APP.get('/memos/daily/<isodate>')
+def daily_memos(isodate):
     response.content_type = 'application/json'
-    return json.dumps(_get_date_container(date).messages)
+    if isodate == 'today':
+        isodate = date.today().isoformat()
+    return json.dumps(_get_date_container(isodate).messages)
 
 
 @APP.route('/')
@@ -48,5 +50,4 @@ def hello():
 
 
 if __name__ == '__main__':
-    print(os.environ.get('PORT', 5000))
     APP.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
