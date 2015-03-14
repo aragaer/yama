@@ -22,6 +22,10 @@ import app
 
 class AppTest(unittest.TestCase):
 
+    def setUp(self):
+        from mongomock import MongoClient
+        app.STORAGE = Storage(MongoClient().db)
+
     def _get_timeline_container(self):
         for container in app.STORAGE.get_root_containers():
             if container.label == 'timeline':

@@ -57,11 +57,10 @@ class Storage(object):
 
     def post_message(self, str_message, container_id):
         self._store_message(container_id, str_message)
-        self._containers[container_id].messages.append(str_message)
 
     def _store_message(self, container_id, str_message):
         message_id = self._connection.messages.save({'text': str_message})
-        self._connection.containers.update(container_id,
+        self._connection.containers.update({'_id': container_id},
                                            {'$push': {
                                                'contents': message_id}})
 
@@ -78,6 +77,9 @@ class Storage(object):
         cid = self._connection.containers.save({'label': container.label,
                                                 'contents': [],
                                                 'children': []})
-        self._connection.containers.update(parent_id,
+        self._connection.containers.update({'_id': parent_id},
                                            {'$push': {
                                                'children': cid}})
+        self._containers[cid] = Container(container.label, _id=cid,
+                                          storage=self)
+        return self._containers[cid]

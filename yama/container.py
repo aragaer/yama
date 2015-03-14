@@ -20,8 +20,11 @@ class Container(object):
         self._messages.append(str_message)
 
     def create_child(self, child_name):
-        self._children.append(Container(child_name))
-        return self._children[-1]
+        child = Container(child_name)
+        if self._storage is not None:
+            child = self._storage.store_container_child(child, self._id)
+        self._children.append(child)
+        return child
 
     @property
     def messages(self):

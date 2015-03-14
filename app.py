@@ -5,13 +5,12 @@ import json
 import os
 
 from bottle import Bottle, request, response
-from mongomock import MongoClient
 
 from yama.storage import Storage
 
 
 APP = Bottle()
-STORAGE = Storage(MongoClient().db)
+STORAGE = None
 
 
 def _get_timeline():
@@ -49,5 +48,19 @@ def hello():
     return 'Hello, world'
 
 
+def _get_mongo_connection():
+    mongo_url = os.environ.get('MONGO_URL')
+
+    if mongo_url:
+        from urllib.parse import urlparse
+        from pymongo import Connection
+        conn = Connection(mongo_url)
+        return conn[urlparse(mongo_url).path[1:]]
+    else:
+        from mongomock import MongoClient
+        return MongoClient().db
+
+
 if __name__ == '__main__':
+    STORAGE = Storage(_get_mongo_connection())
     APP.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

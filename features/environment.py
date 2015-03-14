@@ -26,6 +26,7 @@ def after_scenario(context, scenario):
         for process in context.background_processes:
             try:
                 process.terminate()
+                # TODO: Verify that the port is now free... somehow
             except ProcessLookupError:
                 pass
     if 'freezer' in context:

@@ -36,10 +36,17 @@ class ContainerTest(unittest.TestCase):
 class MongoStorageTest(unittest.TestCase):
 
     _connection = None
+    _storage = None
+
+    def _connect(self):
+        self._storage = Storage(self._connection)
+
+    def _reconnect(self):
+        self._storage = Storage(self._connection)
 
     def setUp(self):
         self._connection = MongoClient().db
-        self._storage = Storage(self._connection)
+        self._connect()
 
     def test_loading(self):
         child = Container('child')
@@ -49,3 +56,14 @@ class MongoStorageTest(unittest.TestCase):
         self.assertEqual(['a message', 'other message'],
                          container.messages)
         self.assertEqual(['child'], [c.label for c in container.children])
+
+    def test_child_is_persistent(self):
+        container = self._storage.create_container('container')
+        child = container.create_child('child')
+        child.post('a message')
+
+        self._reconnect()
+
+        container = next(self._storage.get_root_containers())
+        child = container.children[0]
+        self.assertEqual(['a message'], child.messages)

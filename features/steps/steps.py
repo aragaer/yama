@@ -39,13 +39,22 @@ def verify_today_file(context, directory):
     """'''.format(path=filepath, text=context.text))
 
 
-@given('I have the following memos for date {date}')
-def insert_memos_for_date(context, date):
+def _post_messages_for_date(context, date):
     container = _get_date_container(context, date)
     for line in context.text.splitlines():
         container.post(line)
         if context.debug:
             print("Posted '%s' to container %s" % (line, date))
+
+
+@given('I have the following memos for date {date}')
+def insert_memos_for_date(context, date):
+    _post_messages_for_date(context, date)
+
+
+@given('I have the following memos for today')
+def insert_memos_for_today(context):
+    _post_messages_for_date(context, date.today().isoformat())
 
 
 @when('I access the resource \'{path}\'')
@@ -87,3 +96,18 @@ def check_memos(context, date):
     expected = context.text.splitlines()
     assert existing == expected, \
         "Expected %s, got %s" % (expected, existing)
+
+
+def _get_mongo_database(url):
+    from urllib.parse import urlparse
+    from pymongo import Connection
+    return Connection(url)[urlparse(url).path[1:]]
+
+
+@given('I create an empty oneliner database at "{url}"')
+def create_database(context, url):
+    from yama.storage import Storage
+    database = _get_mongo_database(url)
+    for collection in database.collection_names(False):
+        database.drop_collection(collection)
+    context.storage = Storage(database)
