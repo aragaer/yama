@@ -83,7 +83,7 @@ class StorageTest(unittest.TestCase):
         container = self._storage.create_container('root')
         child = Container('child')
 
-        self._storage.store_container_child(child, container._id)
+        self._storage.store_container_child(child, container.id)
 
         self._reconnect()
         container = next(self._storage.get_root_containers())
