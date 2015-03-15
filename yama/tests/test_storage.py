@@ -4,8 +4,9 @@ import unittest
 
 from mongomock import MongoClient
 
-from yama.storage import Storage
 from yama.container import Container
+from yama.message import Message
+from yama.storage import Storage
 
 
 class StorageTest(unittest.TestCase):
@@ -26,23 +27,21 @@ class StorageTest(unittest.TestCase):
 
     def test_empty_storage(self):
         storage = Storage(self._connection)
-        self.assertEqual(sum(1 for _ in storage.get_container_ids()), 0)
+        self.assertEqual(len(list(storage.get_root_containers())), 0)
 
     def test_container_ids(self):
         storage = Storage(self._connection)
         container = storage.create_container('container')
 
-        ids = [cid for cid in storage.get_container_ids()]
-        self.assertEqual(len(ids), 1)
+        self.assertEqual(len(list(storage.get_root_containers())), 1)
 
-        container_id = ids[0]
+        container_id = next(storage.get_root_containers()).id
         container2 = storage.get_container(container_id)
 
         self.assertEqual(container, container2)
 
         storage2 = Storage(self._connection)
-        ids = [cid for cid in storage.get_container_ids()]
-        self.assertEqual(len(ids), 1)
+        self.assertEqual(len(list(storage.get_root_containers())), 1)
 
         container3 = storage2.get_container(container_id)
 
@@ -58,25 +57,24 @@ class StorageTest(unittest.TestCase):
         storage = Storage(self._connection)
         container = next(storage.get_root_containers())
 
-        self.assertEquals(['Test message'], container.messages)
+        self.assertEquals(['Test message'], list(container.messages))
 
         container.post('another one')
 
         storage = Storage(self._connection)
         container = next(storage.get_root_containers())
 
-        self.assertEquals(['Test message', 'another one'], container.messages)
-        # self.assertEquals(['inner'], [c.label for c in container.children])
+        self.assertEquals(['Test message', 'another one'],
+                          list(container.messages))
+        self.assertEquals(['inner'], [c.label for c in container.children])
 
     def test_stores_container_messages(self):
-        storage = Storage(self._connection)
-        storage.create_container('container name')
-        container_id = next(storage.get_container_ids())
+        container = self._storage.create_container('container name')
 
-        storage.post_message('message', container_id)
+        self._storage.post_message(Message('message'), container)
 
-        storage = Storage(self._connection)
-        container = storage.get_container(container_id)
+        self._reconnect()
+        container = self._storage.get_container(container.id)
         self.assertIn('message', container.messages)
 
     def test_stores_subcontainers(self):

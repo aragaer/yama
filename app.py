@@ -40,7 +40,7 @@ def daily_memos(isodate):
     response.content_type = 'application/json'
     if isodate == 'today':
         isodate = date.today().isoformat()
-    return json.dumps(_get_date_container(isodate).messages)
+    return json.dumps(list(_get_date_container(isodate).messages))
 
 
 @APP.route('/')

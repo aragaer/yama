@@ -66,7 +66,8 @@ class AppTest(unittest.TestCase):
         with freeze_time('2015-03-12'):
             app.daily()
 
-        self.assertEquals(['Just another test line'], container.messages)
+        self.assertEquals(['Just another test line'],
+                          list(container.messages))
 
     def test_today(self):
         container = self._get_date_container('2015-03-14')

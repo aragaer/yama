@@ -5,6 +5,7 @@ import unittest
 from mongomock import MongoClient
 
 from yama.container import Container
+from yama.message import Message
 from yama.storage import Storage
 
 
@@ -30,7 +31,7 @@ class ContainerTest(unittest.TestCase):
         self.assertIsInstance(child, Container)
         self.assertEqual('subcontainer', child.label)
 
-        self.assertEqual([child], container.children)
+        self.assertEqual([child], list(container.children))
 
 
 class MongoStorageTest(unittest.TestCase):
@@ -49,12 +50,12 @@ class MongoStorageTest(unittest.TestCase):
         self._connect()
 
     def test_loading(self):
-        child = Container('child')
         container = Container(storage=self._storage,
-                              contents=['a message', 'other message'],
-                              children=[child])
+                              contents=[Message('a message'),
+                                        Container('child'),
+                                        Message('other message')])
         self.assertEqual(['a message', 'other message'],
-                         container.messages)
+                         list(container.messages))
         self.assertEqual(['child'], [c.label for c in container.children])
 
     def test_child_is_persistent(self):
@@ -65,5 +66,5 @@ class MongoStorageTest(unittest.TestCase):
         self._reconnect()
 
         container = next(self._storage.get_root_containers())
-        child = container.children[0]
-        self.assertEqual(['a message'], child.messages)
+        child = next(container.children)
+        self.assertEqual(['a message'], list(child.messages))
