@@ -8,30 +8,38 @@ from yama.message import Message
 
 class Storage(object):
 
-    _containers = None
+    _cache = None
     _storage = None
 
     def __init__(self, connection=None):
-        self._containers = {}
+        self._cache = {}
         if connection is not None:
             self._storage = _MongoStorage(connection)
 
     def _cache(function):
         def wrapper(self, *args, **kwargs):
             result = function(self, *args, **kwargs)
-            self._containers[result.id] = result
+            self._cache[result.id] = result
             return result
         return wrapper
 
-    def _create_container_id(self, label):
-        return self._storage.store_new_container(label)
+    def _cached(function):
+        def wrapper(self, item_id):
+            try:
+                return self._cache[item_id]
+            except KeyError:
+                self._cache[item_id] = function(self, item_id)
+                return self._cache[item_id]
+        return wrapper
 
-    def _create_message_id(self, text):
-        return self._storage.store_new_message(text)
+    def _fill_in_id(self, item):
+        record = _Record.from_item(item)
+        item.id = self._storage.store_new_item(record)
 
     def _create_container(self, str_label):
-        cid = self._create_container_id(str_label)
-        return Container(label=str_label, _id=cid, storage=self)
+        result = Container(label=str_label, storage=self)
+        self._fill_in_id(result)
+        return result
 
     def _make_root(self, container):
         self._storage.add_to_roots(container.id)
@@ -42,47 +50,98 @@ class Storage(object):
         self._make_root(container)
         return container
 
-    def _store_as_child(self, child, parent_id):
-        self._storage.store_child(child.id, parent_id)
+    def _store_as_child_c(self, child, parent):
+        self._storage.store_child_c(child.id, parent.id)
 
-    def _store_as_child_m(self, child, parent_id):
-        self._storage.store_child_m(child.id, parent_id)
+    def _store_as_child_m(self, child, parent):
+        self._storage.store_child_m(child.id, parent.id)
 
-    @_cache
-    def store_container_child(self, container, parent_id):
-        container.id = self._create_container_id(container.label)
-        self._store_as_child(container, parent_id)
-        return container
-
-    @_cache
-    def get_container(self, container_id):
-        try:
-            return self._containers[container_id]
-        except KeyError:
-            pass
-        return self._load_container(container_id)
-
-    def _load_container(self, container_id):
-        document = self._storage.load_container(container_id)
-        contents = chain(self._load_messages(document['contents']),
-                         (self.get_container(cid)
-                          for cid in document['children']))
-        return Container(label=document['label'], _id=container_id,
-                         contents=contents, storage=self)
+    def store_container_child(self, child, parent):
+        self._fill_in_id(child)
+        self._store_as_child_c(child, parent)
 
     def post_message(self, message, container):
-        message.id = self._create_message_id(message.text)
-        self._store_as_child_m(message, container.id)
+        self._fill_in_id(message)
+        self._store_as_child_m(message, container)
 
-    def _load_messages(self, mids):
-        return (Message(m) for m in self._storage.load_messages(mids))
+    @_cached
+    def get_container(self, container_id):
+        return self._storage.load_container(container_id).inflate(self)
+
+    def load_messages(self, mids):
+        return (m.inflate(self) for m in self._storage.load_messages(mids))
 
     def get_root_containers(self):
         return (self.get_container(cid) for cid in self._storage.get_root_ids())
 
 
+class _Record(object):
+    @staticmethod
+    def from_item(item):
+        if isinstance(item, Container):
+            return _ContainerRecord.from_item(item)
+        elif isinstance(item, Message):
+            return _MessageRecord.from_item(item)
+        else:
+            raise ValueError("Unknown class " + type(item))
+
+
+class _ContainerRecord(object):
+
+    def __init__(self, label, contents=None, children=None, _id=None):
+        self._label = label
+        self._contents = contents or []
+        self._children = children or []
+        self._id = _id
+
+    @classmethod
+    def from_item(cls, container):
+        return cls(container.label, None, None, None)
+
+    @property
+    def document(self):
+        return {'label': self._label,
+                'contents': self._contents,
+                'children': self._children}
+
+    def inflate(self, storage):
+        contents = chain(storage.load_messages(self._contents),
+                         (storage.get_container(cid) for cid in self._children))
+        return Container(_id=self._id,
+                         label=self._label,
+                         contents=contents,
+                         storage=storage)
+
+    @property
+    def collection(self):
+        return 'containers'
+
+
+class _MessageRecord(object):
+
+    def __init__(self, text, _id=None):
+        self._text = text
+        self._id = _id
+
+    @classmethod
+    def from_item(cls, message):
+        return cls(text=message.text)
+
+    @property
+    def document(self):
+        return {'text': self._text}
+
+    def inflate(self, _):
+        return Message(self._text, _id=self._id)
+
+    @property
+    def collection(self):
+        return 'messages'
+
+
 class _MongoStorage(object):
 
+    _connection = None
     _root_id = None
 
     _CONTAINERS = None
@@ -90,6 +149,7 @@ class _MongoStorage(object):
     _ROOTS = None
 
     def __init__(self, connection):
+        self._connection = connection
         self._CONTAINERS = connection.containers
         self._MESSAGES = connection.messages
         self._ROOTS = connection.roots
@@ -103,18 +163,15 @@ class _MongoStorage(object):
         self._ROOTS.update({'_id': self._root_id},
                            {'$push': {'list': container_id}})
 
-    def store_new_container(self, str_label):
-        return self._CONTAINERS.save({'label': str_label,
-                                      'contents': [], 'children': []})
-
-    def store_new_message(self, str_text):
-        return self._MESSAGES.save({'text': str_text})
+    def store_new_item(self, doc):
+        """Save the new document and return the assigned _id."""
+        return self._connection[doc.collection].save(doc.document)
 
     def _store_child(self, child_id, parent_id, list_name):
         self._CONTAINERS.update({'_id': parent_id},
                                 {'$push': {list_name: child_id}})
 
-    def store_child(self, child_id, parent_id):
+    def store_child_c(self, child_id, parent_id):
         self._store_child(child_id, parent_id, 'children')
 
     def store_child_m(self, child_id, parent_id):
@@ -125,8 +182,9 @@ class _MongoStorage(object):
 
     def load_messages(self, mids):
         query = {'_id': {'$in': mids}}
-        results = dict((d['_id'], d['text']) for d in self._MESSAGES.find(query))
+        results = dict((d['_id'], _MessageRecord(**d))
+                       for d in self._MESSAGES.find(query))
         return (results[i] for i in mids)
 
     def load_container(self, container_id):
-        return self._CONTAINERS.find_one(container_id)
+        return _ContainerRecord(**self._CONTAINERS.find_one(container_id))
