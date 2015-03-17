@@ -16,6 +16,13 @@ class Storage(object):
         if connection is not None:
             self._storage = _MongoStorage(connection)
 
+    def _cache(function):
+        def wrapper(self, *args, **kwargs):
+            result = function(self, *args, **kwargs)
+            self._containers[result.id] = result
+            return result
+        return wrapper
+
     def _create_container_id(self, label):
         return self._storage.store_new_container(label)
 
@@ -24,13 +31,12 @@ class Storage(object):
 
     def _create_container(self, str_label):
         cid = self._create_container_id(str_label)
-        self._containers[cid] = Container(label=str_label,
-                                          _id=cid, storage=self)
-        return self._containers[cid]
+        return Container(label=str_label, _id=cid, storage=self)
 
     def _make_root(self, container):
         self._storage.add_to_roots(container.id)
 
+    @_cache
     def create_container(self, str_label):
         container = self._create_container(str_label)
         self._make_root(container)
@@ -42,31 +48,29 @@ class Storage(object):
     def _store_as_child_m(self, child, parent_id):
         self._storage.store_child_m(child.id, parent_id)
 
+    @_cache
     def store_container_child(self, container, parent_id):
         container.id = self._create_container_id(container.label)
-        self._containers[container.id] = container
         self._store_as_child(container, parent_id)
         return container
 
+    @_cache
     def get_container(self, container_id):
         try:
             return self._containers[container_id]
         except KeyError:
             pass
+        return self._load_container(container_id)
+
+    def _load_container(self, container_id):
         document = self._storage.load_container(container_id)
         contents = chain(self._load_messages(document['contents']),
                          (self.get_container(cid)
                           for cid in document['children']))
-        self._containers[container_id] = Container(label=document['label'],
-                                                   _id=container_id,
-                                                   contents=contents,
-                                                   storage=self)
-        return self._containers[container_id]
+        return Container(label=document['label'], _id=container_id,
+                         contents=contents, storage=self)
 
     def post_message(self, message, container):
-        self._store_message(container, message)
-
-    def _store_message(self, container, message):
         message.id = self._create_message_id(message.text)
         self._store_as_child_m(message, container.id)
 
