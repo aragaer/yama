@@ -21,7 +21,7 @@ class Container(YamaObject):
         self._contents.append(message)
 
     def create_child(self, child_name):
-        child = Container(child_name)
+        child = Container(child_name, storage=self._storage)
         if self._storage is not None:
             child = self._storage.store_container_child(child, self.id)
         self._contents.append(child)
