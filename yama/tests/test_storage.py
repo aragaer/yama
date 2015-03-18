@@ -71,7 +71,7 @@ class StorageTest(unittest.TestCase):
     def test_stores_container_messages(self):
         container = self._storage.create_container('container name')
 
-        self._storage.post_message(Message('message'), container)
+        self._storage.store_item(Message('message'), container)
 
         self._reconnect()
         container = self._storage.get_container(container.id)
@@ -81,7 +81,7 @@ class StorageTest(unittest.TestCase):
         container = self._storage.create_container('root')
         child = Container('child')
 
-        self._storage.store_container_child(child, container)
+        self._storage.store_item(child, container)
 
         self._reconnect()
         container = next(self._storage.get_root_containers())

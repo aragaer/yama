@@ -17,13 +17,13 @@ class Container(YamaObject):
     def post(self, str_message):
         message = Message(str_message)
         if self._storage is not None:
-            self._storage.post_message(message, self)
+            self._storage.store_item(message, self)
         self._contents.append(message)
 
     def create_child(self, child_name):
         child = Container(child_name, storage=self._storage)
         if self._storage is not None:
-            self._storage.store_container_child(child, self)
+            self._storage.store_item(child, self)
         self._contents.append(child)
         return child
 
