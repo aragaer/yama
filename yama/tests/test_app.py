@@ -11,13 +11,16 @@ from freezegun import freeze_time
 
 from yama.storage import Storage
 
-PATH_TESTS = os.path.abspath(os.path.dirname(__file__))
-PATH_PROJECT = os.path.basename(PATH_TESTS)
-PATH_CURRENT = PATH_TESTS.strip(PATH_PROJECT)
+try:
+    PATH_TESTS = os.path.abspath(os.path.dirname(__file__))
+    PATH_PROJECT = os.path.basename(PATH_TESTS)
+    PATH_CURRENT = PATH_TESTS.strip(PATH_PROJECT)
 
-sys.path.append(PATH_CURRENT)
+    sys.path.append(PATH_CURRENT)
 
-import app
+    import app
+except:
+    raise ImportError("Can't find app.py")
 
 
 class AppTest(unittest.TestCase):

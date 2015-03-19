@@ -45,7 +45,7 @@ class MainTest(unittest.TestCase):
 
     @freeze_time("2015-02-17")
     @tempdir()
-    def test_executeMain(self, directory):
+    def test_execute_main(self, directory):
         import sys
 
         os.chdir(directory.path)
@@ -57,4 +57,5 @@ class MainTest(unittest.TestCase):
         main()
 
         directory.check("gold.txt", "oneliner.config", "some_dir")
-        compare(directory.read("gold.txt"), directory.read("some_dir/2015-02-17.txt"))
+        compare(directory.read("gold.txt"),
+                directory.read("some_dir/2015-02-17.txt"))
