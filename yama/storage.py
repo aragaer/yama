@@ -9,29 +9,13 @@ from yama.record import Record
 
 class Storage(object):
 
-    _cache = None
+    _cached_objects = None
     _storage = None
 
     def __init__(self, connection=None):
-        self._cache = {}
+        self._cached_objects = {}
         if connection is not None:
             self._storage = MongoStorage(connection)
-
-    def _cache(function):
-        def wrapper(self, *args, **kwargs):
-            result = function(self, *args, **kwargs)
-            self._cache[result.id] = result
-            return result
-        return wrapper
-
-    def _cached(function):
-        def wrapper(self, item_id):
-            try:
-                return self._cache[item_id]
-            except KeyError:
-                self._cache[item_id] = function(self, item_id)
-                return self._cache[item_id]
-        return wrapper
 
     def _store_item(self, item):
         if item.id is None:
@@ -41,12 +25,12 @@ class Storage(object):
     def _create_container(self, str_label):
         result = Container(label=str_label, storage=self)
         self._store_item(result)
+        self._cached_objects[result.id] = result
         return result
 
     def _make_root(self, container):
         self._storage.add_to_roots(container.id)
 
-    @_cache
     def create_container(self, str_label):
         container = self._create_container(str_label)
         self._make_root(container)
@@ -59,9 +43,13 @@ class Storage(object):
         self._store_item(child)
         self._store_as_child(child, parent)
 
-    @_cached
     def get_container(self, container_id):
-        return self._storage.load_one_item(container_id).inflate(self)
+        try:
+            return self._cached_objects[container_id]
+        except KeyError:
+            result = self._storage.load_one_item(container_id).inflate(self)
+            self._cached_objects[container_id] = result
+            return result
 
     def load_items(self, ids):
         return (m.inflate(self) for m in self._storage.load_many_items(ids))

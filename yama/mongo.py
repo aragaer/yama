@@ -7,20 +7,20 @@ class MongoStorage(object):
     _connection = None
     _root_id = None
 
-    _ROOTS = None
+    _roots = None
 
     def __init__(self, connection):
         self._connection = connection
         self._collection = connection.objects
-        self._ROOTS = connection.roots
-        root_doc = self._ROOTS.find_one()
+        self._roots = connection.roots
+        root_doc = self._roots.find_one()
         if root_doc is None:
-            self._root_id = self._ROOTS.save({'list': []})
+            self._root_id = self._roots.save({'list': []})
         else:
             self._root_id = root_doc['_id']
 
     def add_to_roots(self, container_id):
-        self._ROOTS.update({'_id': self._root_id},
+        self._roots.update({'_id': self._root_id},
                            {'$push': {'list': container_id}})
 
     def store_new_item(self, doc):
@@ -32,7 +32,7 @@ class MongoStorage(object):
                                 {'$push': {'contents': child_id}})
 
     def get_root_ids(self):
-        return self._ROOTS.find_one(self._root_id)['list']
+        return self._roots.find_one(self._root_id)['list']
 
     def load_one_item(self, item_id):
         return Record.from_document(self._collection.find_one(item_id))
