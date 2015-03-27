@@ -32,6 +32,7 @@ def _get_date_container(date):
 def daily():
     message = request.body.read().decode('utf-8')
     str_date = date.today().isoformat()
+    response.set_header('Access-Control-Allow-Origin', '*')
     _get_date_container(str_date).post(message)
 
 
@@ -40,6 +41,7 @@ def daily_memos(isodate):
     response.content_type = 'application/json'
     if isodate == 'today':
         isodate = date.today().isoformat()
+    response.set_header('Access-Control-Allow-Origin', '*')
     return json.dumps(list(_get_date_container(isodate).messages))
 
 

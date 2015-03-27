@@ -82,3 +82,18 @@ class AppTest(unittest.TestCase):
             result = app.daily_memos('today')
 
         self.assertEquals(json.loads(result), messages)
+
+    def _test_origins(self):
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+        origins = response.get_header('Access-Control-Allow-Origin')
+        if origins != '*':
+            self.assertIn('jsfiddle.net', origins)
+
+    def test_jsfiddle(self):
+        response.headers.pop('Access-Control-Allow-Origin')
+        app.daily()
+        self._test_origins()
+
+        response.headers.pop('Access-Control-Allow-Origin')
+        app.daily_memos('today')
+        self._test_origins()
