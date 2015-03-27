@@ -41,6 +41,14 @@ def daily_memos(isodate):
     if isodate == 'today':
         isodate = date.today().isoformat()
     return json.dumps(list(_get_date_container(isodate).messages))
+    
+
+@APP.hook('after_request')
+def enable_cors():
+    response.set_header('Access-Control-Allow-Origin', '*')
+    response.set_header('Access-Control-Allow-Methods', 'GET, POST')
+    response.set_header('Access-Control-Allow-Headers',
+                        'Origin, Accept, Content-Type')
 
 
 @APP.route('/')

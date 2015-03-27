@@ -82,3 +82,21 @@ class AppTest(unittest.TestCase):
             result = app.daily_memos('today')
 
         self.assertEquals(json.loads(result), messages)
+
+    def test_cors(self):
+        app.enable_cors()
+        self.assertIn('Access-Control-Allow-Origin', response.headers)
+        origins = response.get_header('Access-Control-Allow-Origin')
+        if origins != '*':
+            self.assertIn('jsfiddle.net', origins)
+
+        self.assertIn('Access-Control-Allow-Methods', response.headers)
+        methods = response.get_header('Access-Control-Allow-Methods')
+        self.assertIn('GET', methods)
+        self.assertIn('POST', methods)
+
+        self.assertIn('Access-Control-Allow-Headers', response.headers)
+        headers = response.get_header('Access-Control-Allow-Headers')
+        self.assertIn('Origin', headers)
+        self.assertIn('Accept', headers)
+        self.assertIn('Content-Type', headers)
